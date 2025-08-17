@@ -1,0 +1,24 @@
+# ===================================
+# DreamWeave Backend - Minimal Image Generation API
+# Privacy-First: No audio processing, no transcription
+# ===================================
+
+# Core Flask Framework
+flask==3.0.0
+flask-cors==4.0.0
+flask-limiter==3.5.0
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Production Server
+gunicorn==21.2.0
+
+# AI Image Generation (ONLY)
+openai==1.54.3
+
+# HTTP Requests
+requests==2.31.0
+
+# Basic Image Processing (for validation)
+pillow==10.1.0

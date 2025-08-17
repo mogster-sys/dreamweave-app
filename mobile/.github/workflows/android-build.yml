@@ -1,0 +1,81 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master, android-direct ]
+  pull_request:
+    branches: [ main, master, android-direct ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Install dependencies
+      run: cd mobile && npm install
+      
+    - name: Install Expo CLI
+      run: npm install -g @expo/cli
+      
+    - name: Prebuild Android project
+      run: cd mobile && npx expo prebuild --platform android --clean
+      
+    - name: Build APK
+      run: |
+        cd mobile/android
+        chmod +x gradlew
+        ./gradlew assembleRelease
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: dreamweave-apk
+        path: mobile/android/app/build/outputs/apk/release/app-release.apk
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/android-direct'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: DreamWeave Mobile v1.0.${{ github.run_number }}
+        body: |
+          🌙 DreamWeave Mobile App
+          
+          **Features:**
+          - 🎤 Voice dream recording
+          - 🤖 AI-powered dream enhancement
+          - 📖 Dream journal with search
+          - 🎨 Visual prompt generation
+          - 🔒 Privacy-first design
+          
+          **Installation:**
+          1. Download the APK below
+          2. Enable "Install unknown apps" in Android settings
+          3. Install the APK on your device
+          4. Grant microphone permission when prompted
+          
+        files: |
+          mobile/android/app/build/outputs/apk/release/app-release.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

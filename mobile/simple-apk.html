@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DreamWeave Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1b3a 100%);
+            color: white; 
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container { max-width: 400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .card { 
+            background: rgba(26, 27, 58, 0.8); 
+            backdrop-filter: blur(10px);
+            padding: 20px; 
+            border-radius: 16px; 
+            margin-bottom: 20px;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .btn { 
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white; 
+            padding: 15px 20px; 
+            border: none; 
+            border-radius: 12px; 
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
+        .record-btn { 
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            border-radius: 50%; 
+            width: 80px; 
+            height: 80px; 
+            margin: 20px auto;
+            display: block;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .record-btn:hover { transform: scale(1.1); }
+        .recording { animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .status { text-align: center; margin: 15px 0; font-weight: 500; }
+        .feature { margin: 8px 0; display: flex; align-items: center; }
+        .feature-icon { margin-right: 10px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌙 DreamWeave</h1>
+            <p>AI-Powered Dream Journal</p>
+        </div>
+        
+        <div class="card">
+            <h2>Record Your Dream</h2>
+            <button class="record-btn" id="recordBtn" onclick="toggleRecording()">🎤</button>
+            <p class="status" id="status">Tap to record your dream</p>
+        </div>
+        
+        <div class="card">
+            <h2>📖 Dream Journal</h2>
+            <button class="btn" onclick="showJournal()">View Saved Dreams</button>
+        </div>
+        
+        <div class="card">
+            <h2>✨ Features</h2>
+            <div class="feature"><span class="feature-icon">🎤</span> Voice dream recording</div>
+            <div class="feature"><span class="feature-icon">🤖</span> AI-powered enhancement</div>
+            <div class="feature"><span class="feature-icon">🎨</span> Visual prompt generation</div>
+            <div class="feature"><span class="feature-icon">🔒</span> Privacy-first design</div>
+            <div class="feature"><span class="feature-icon">📱</span> Install as app</div>
+        </div>
+        
+        <div class="card">
+            <h2>📲 Install Instructions</h2>
+            <p style="font-size: 14px; line-height: 1.5;">
+                Tap your browser menu and select <strong>"Add to Home Screen"</strong> 
+                to install DreamWeave as a native app on your device.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        let isRecording = false;
+        let mediaRecorder;
+        
+        async function toggleRecording() {
+            const recordBtn = document.getElementById('recordBtn');
+            const status = document.getElementById('status');
+            
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.textContent = '⏹️';
+                    recordBtn.classList.add('recording');
+                    status.textContent = 'Recording your dream... Tap to stop';
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        // In real app, this would process the audio
+                        console.log('Audio data recorded:', event.data);
+                    };
+                    
+                } catch (error) {
+                    status.textContent = 'Microphone access required for recording';
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.textContent = '🎤';
+                recordBtn.classList.remove('recording');
+                status.textContent = 'Dream recorded! Ready for AI enhancement';
+                
+                // Stop all tracks
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                // Simulate processing
+                setTimeout(() => {
+                    status.textContent = 'Tap to record another dream';
+                }, 3000);
+            }
+        }
+        
+        function showJournal() {
+            alert('Dream Journal\n\nThis would show your saved dreams with:\n• AI-enhanced descriptions\n• Visual prompts\n• Search and filtering\n• Export options');
+        }
+        
+        // PWA installation prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+    </script>
+</body>
+</html>
