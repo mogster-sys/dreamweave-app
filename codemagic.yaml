@@ -119,7 +119,6 @@ workflows:
         
       # Firebase App Distribution for Android
       firebase:
-        firebase_project: dreamweave-app
         firebase_token: $FIREBASE_TOKEN
         android:
           app_id: $FIREBASE_ANDROID_APP_ID
