@@ -3,7 +3,7 @@ workflows:
   ios-android-workflow:
     name: iOS & Android Build
     max_build_duration: 120
-    instance_type: mac_m2
+    instance_type: mac_mini_m2
     integrations:
       app_store_connect: DreamWeave ASC
     environment:
@@ -122,7 +122,6 @@ workflows:
         firebase_project: dreamweave-app
         firebase_token: $FIREBASE_TOKEN
         android:
-          artifact_type: apk
           app_id: $FIREBASE_ANDROID_APP_ID
           groups:
             - android-testers
@@ -198,7 +197,7 @@ workflows:
   ios-only-workflow:
     name: iOS Build Only
     max_build_duration: 60
-    instance_type: mac_m2
+    instance_type: mac_mini_m2
     integrations:
       app_store_connect: DreamWeave ASC
     environment:
