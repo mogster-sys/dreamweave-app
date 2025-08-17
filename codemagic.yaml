@@ -9,8 +9,6 @@ workflows:
     environment:
       groups:
         - dreamweave_env
-        - ios_credentials
-        - android_credentials
       vars:
         NODE_VERSION: 18.17.0
         XCODE_VERSION: 15.0
@@ -132,7 +130,6 @@ workflows:
     environment:
       groups:
         - dreamweave_env
-        - android_credentials
       node: 18.17.0
       
     scripts:
@@ -193,7 +190,6 @@ workflows:
     environment:
       groups:
         - dreamweave_env
-        - ios_credentials
       vars:
         XCODE_VERSION: 15.0
       node: 18.17.0
