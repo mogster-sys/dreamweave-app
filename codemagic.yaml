@@ -28,13 +28,6 @@ workflows:
           include: true
           
     scripts:
-      # Debug step to check directory structure
-      - name: Check directory structure
-        script: |
-          pwd
-          ls -la
-          ls -la mobile/ || echo "Mobile directory not found"
-          
       # Install dependencies
       - name: Install npm dependencies
         script: |
@@ -63,7 +56,7 @@ workflows:
       - name: Build iOS IPA
         script: |
           cd mobile
-          npx expo prebuild --platform ios --clear
+          npx expo prebuild --platform ios
           cd ios
           xcodebuild \
             -workspace DreamweaveMobile.xcworkspace \
@@ -89,7 +82,7 @@ workflows:
       - name: Build Android APK and AAB
         script: |
           cd mobile
-          npx expo prebuild --platform android --clear
+          npx expo prebuild --platform android
           cd android
           ./gradlew assembleRelease
           ./gradlew bundleRelease
@@ -140,13 +133,6 @@ workflows:
       node: 18.17.0
       
     scripts:
-      # Debug step
-      - name: Check directory structure
-        script: |
-          pwd
-          ls -la
-          ls -la mobile/ || echo "Mobile directory not found"
-          
       - name: Install dependencies
         script: |
           cd mobile
@@ -164,7 +150,7 @@ workflows:
       - name: Prebuild Android
         script: |
           cd mobile
-          npx expo prebuild --platform android --clear
+          npx expo prebuild --platform android
           
       - name: Build Android APK
         script: |
@@ -228,7 +214,7 @@ workflows:
       - name: Prebuild iOS
         script: |
           cd mobile
-          npx expo prebuild --platform ios --clear
+          npx expo prebuild --platform ios
           
       - name: Set up code signing
         script: |
