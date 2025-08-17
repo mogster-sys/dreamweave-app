@@ -1,0 +1,315 @@
+workflows:
+  # iOS and Android Build - Both Platforms
+  ios-android-workflow:
+    name: iOS & Android Build
+    max_build_duration: 120
+    instance_type: mac_m2
+    integrations:
+      app_store_connect: DreamWeave ASC
+    environment:
+      groups:
+        - dreamweave_env
+        - ios_credentials
+        - android_credentials
+      vars:
+        NODE_VERSION: 18.17.0
+        XCODE_VERSION: 15.0
+        COCOAPODS_VERSION: 1.14.0
+      node: 18.17.0
+      xcode: 15.0
+      cocoapods: 1.14.0
+      
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: master
+          include: true
+        - pattern: develop
+          include: true
+          
+    scripts:
+      # Install dependencies
+      - name: Install npm dependencies
+        script: |
+          cd mobile
+          npm install
+          
+      - name: Install iOS dependencies
+        script: |
+          cd mobile/ios
+          pod install || true
+          
+      - name: Set up environment variables
+        script: |
+          cd mobile
+          cat > .env << EOF
+          EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL
+          EXPO_PUBLIC_SUPABASE_ANON_KEY=$EXPO_PUBLIC_SUPABASE_ANON_KEY
+          EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+          EOF
+          
+      # iOS Build
+      - name: Set up iOS code signing
+        script: |
+          cd mobile/ios
+          xcode-project use-profiles
+          
+      - name: Build iOS IPA
+        script: |
+          cd mobile
+          npx expo prebuild --platform ios --clear
+          cd ios
+          xcodebuild \
+            -workspace DreamweaveMobile.xcworkspace \
+            -scheme DreamweaveMobile \
+            -configuration Release \
+            -derivedDataPath build \
+            -archivePath build/DreamweaveMobile.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM
+            
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/DreamweaveMobile.xcarchive \
+            -exportPath build \
+            -exportOptionsPlist ../exportOptions.plist
+            
+      # Android Build  
+      - name: Set up Android keystore
+        script: |
+          echo $ANDROID_KEYSTORE | base64 --decode > mobile/android/app/keystore.jks
+          
+      - name: Build Android APK and AAB
+        script: |
+          cd mobile
+          npx expo prebuild --platform android --clear
+          cd android
+          ./gradlew assembleRelease
+          ./gradlew bundleRelease
+          
+    artifacts:
+      # iOS artifacts
+      - mobile/ios/build/*.ipa
+      - mobile/ios/build/*.app.dSYM.zip
+      # Android artifacts
+      - mobile/android/app/build/outputs/**/*.apk
+      - mobile/android/app/build/outputs/**/*.aab
+      - mobile/android/app/build/outputs/**/mapping.txt
+      
+    publishing:
+      # Email distribution
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+          
+      # TestFlight distribution for iOS
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+          - Beta Testers
+        submit_to_app_store: false
+        
+      # Firebase App Distribution for Android
+      firebase:
+        firebase_project: dreamweave-app
+        firebase_token: $FIREBASE_TOKEN
+        android:
+          artifact_type: apk
+          app_id: $FIREBASE_ANDROID_APP_ID
+          groups:
+            - android-testers
+            
+      # Slack notification
+      slack:
+        channel: '#builds'
+        notify_on_build_start: false
+        notify:
+          success: true
+          failure: true
+          
+  # Android-only workflow (faster, Linux runner)
+  android-only-workflow:
+    name: Android Build Only
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      groups:
+        - dreamweave_env
+        - android_credentials
+      node: 18.17.0
+      
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd mobile
+          npm install
+          
+      - name: Set up environment
+        script: |
+          cd mobile
+          cat > .env << EOF
+          EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL
+          EXPO_PUBLIC_SUPABASE_ANON_KEY=$EXPO_PUBLIC_SUPABASE_ANON_KEY
+          EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+          EOF
+          
+      - name: Prebuild Android
+        script: |
+          cd mobile
+          npx expo prebuild --platform android --clear
+          
+      - name: Build Android APK
+        script: |
+          cd mobile/android
+          ./gradlew assembleRelease
+          
+      - name: Build Android Bundle (AAB)
+        script: |
+          cd mobile/android
+          ./gradlew bundleRelease
+          
+    artifacts:
+      - mobile/android/app/build/outputs/**/*.apk
+      - mobile/android/app/build/outputs/**/*.aab
+      
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: false
+          
+      # Google Play distribution
+      google_play:
+        credentials: $GOOGLE_PLAY_CREDENTIALS
+        track: internal
+        submit_as_draft: true
+        
+  # iOS-only workflow (Mac runner required)
+  ios-only-workflow:
+    name: iOS Build Only
+    max_build_duration: 60
+    instance_type: mac_m2
+    integrations:
+      app_store_connect: DreamWeave ASC
+    environment:
+      groups:
+        - dreamweave_env
+        - ios_credentials
+      vars:
+        XCODE_VERSION: 15.0
+      node: 18.17.0
+      xcode: 15.0
+      cocoapods: 1.14.0
+      
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd mobile
+          npm install
+          
+      - name: Install iOS dependencies
+        script: |
+          cd mobile/ios
+          pod install || true
+          
+      - name: Set up environment
+        script: |
+          cd mobile
+          cat > .env << EOF
+          EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL
+          EXPO_PUBLIC_SUPABASE_ANON_KEY=$EXPO_PUBLIC_SUPABASE_ANON_KEY
+          EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+          EOF
+          
+      - name: Prebuild iOS
+        script: |
+          cd mobile
+          npx expo prebuild --platform ios --clear
+          
+      - name: Set up code signing
+        script: |
+          cd mobile/ios
+          xcode-project use-profiles
+          
+      - name: Build iOS IPA
+        script: |
+          cd mobile/ios
+          xcodebuild \
+            -workspace DreamweaveMobile.xcworkspace \
+            -scheme DreamweaveMobile \
+            -configuration Release \
+            -derivedDataPath build \
+            -archivePath build/DreamweaveMobile.xcarchive \
+            archive
+            
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/DreamweaveMobile.xcarchive \
+            -exportPath build \
+            -exportOptionsPlist ../exportOptions.plist
+            
+    artifacts:
+      - mobile/ios/build/*.ipa
+      - mobile/ios/build/*.app.dSYM.zip
+      
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+        submit_to_app_store: false
+        
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+          
+  # Local machine runner workflow (if you have your own Mac)
+  local-runner-workflow:
+    name: Local Machine Build
+    instance_type: local
+    environment:
+      groups:
+        - dreamweave_env
+      node: 18.17.0
+      
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd mobile
+          npm install
+          
+      - name: Build for both platforms
+        script: |
+          cd mobile
+          # iOS build (if on Mac)
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            npx expo prebuild --platform ios --clear
+            cd ios
+            xcodebuild -workspace DreamweaveMobile.xcworkspace -scheme DreamweaveMobile -configuration Release archive
+            cd ..
+          fi
+          
+          # Android build
+          npx expo prebuild --platform android --clear
+          cd android
+          ./gradlew assembleRelease
+          ./gradlew bundleRelease
+          
+    artifacts:
+      - mobile/ios/build/*.ipa
+      - mobile/android/app/build/outputs/**/*.apk
+      - mobile/android/app/build/outputs/**/*.aab
