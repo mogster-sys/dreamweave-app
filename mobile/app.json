@@ -3,7 +3,7 @@
     "name": "DreamWeave",
     "slug": "dreamweave",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "portrait", 
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -11,6 +11,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#1a1b3a"
     },
+    "sdkVersion": "49.0.0",
+    "platforms": ["ios", "android"],
+    "plugins": [
+      "expo-dev-client"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.dreamweave",
@@ -23,7 +28,9 @@
       },
       "package": "com.yourcompany.dreamweave",
       "versionCode": 1,
-      "permissions": ["RECORD_AUDIO"]
+      "permissions": ["RECORD_AUDIO"],
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34
     },
     "extra": {
       "eas": {

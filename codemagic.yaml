@@ -74,11 +74,7 @@ workflows:
             -exportPath build \
             -exportOptionsPlist ../exportOptions.plist
             
-      # Android Build  
-      - name: Set up Android keystore
-        script: |
-          echo $ANDROID_KEYSTORE | base64 --decode > mobile/android/app/keystore.jks
-          
+      # Android Build (debug - no signing required)
       - name: Build Android APK and AAB
         script: |
           cd mobile
@@ -152,15 +148,15 @@ workflows:
           cd mobile
           npx expo prebuild --platform android
           
-      - name: Build Android APK
+      - name: Build Android APK (Debug)
         script: |
           cd mobile/android
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug
           
       - name: Build Android Bundle (AAB)
         script: |
           cd mobile/android
-          ./gradlew bundleRelease
+          ./gradlew bundleDebug
           
     artifacts:
       - mobile/android/app/build/outputs/**/*.apk
