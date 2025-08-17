@@ -117,14 +117,6 @@ workflows:
           - Beta Testers
         submit_to_app_store: false
         
-      # Firebase App Distribution for Android
-      firebase:
-        firebase_token: $FIREBASE_TOKEN
-        android:
-          app_id: $FIREBASE_ANDROID_APP_ID
-          groups:
-            - android-testers
-            
       # Slack notification
       slack:
         channel: '#builds'
