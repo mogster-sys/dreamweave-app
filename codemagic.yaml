@@ -33,8 +33,7 @@ workflows:
       # Install dependencies
       - name: Install npm dependencies
         script: |
-          cd mobile
-          npm install
+          cd mobile && npm install
           
       - name: Install iOS dependencies
         script: |
