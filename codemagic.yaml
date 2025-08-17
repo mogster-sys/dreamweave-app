@@ -174,11 +174,6 @@ workflows:
           success: true
           failure: false
           
-      # Google Play distribution
-      google_play:
-        credentials: $GOOGLE_PLAY_CREDENTIALS
-        track: internal
-        submit_as_draft: true
         
   # iOS-only workflow (Mac runner required)
   ios-only-workflow:
