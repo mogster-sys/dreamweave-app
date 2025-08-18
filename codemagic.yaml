@@ -143,10 +143,15 @@ workflows:
           EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
           EOF
           
-      - name: Prebuild Android
+      - name: Prebuild Android with fixes
         script: |
           cd mobile
+          # Clear any existing android folder
+          rm -rf android
+          # Prebuild with platform android
           npx expo prebuild --platform android
+          # Fix gradle plugin issues
+          echo "allprojects { repositories { maven { url 'https://www.jitpack.io' } } }" >> android/build.gradle
           
       - name: Build Android APK (Debug)
         script: |
